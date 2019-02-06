@@ -39,13 +39,13 @@ Vagrant.configure("2") do |config|
 	config.hostmanager.manage_host 	= true
 	config.hostmanager.manage_guest = true
 
-	config.vm.provision "shell", name: "enable epel", 						inline: "yum install -y epel-release"
-	config.vm.provision "shell", name: "additional tools", 				inline: "yum install -y jq net-tools"
-	config.vm.provision :shell, name: "Install python and pip", 	inline: $install_python_and_pip
-	config.vm.provision :shell, name: "Install aws-profile", 			inline: "pip3.6 install aws-profile"
-	config.vm.provision :shell, name: "Install ruby",  						inline: $install_ruby
-	# config.vm.provision "shell", name: "install ansible", 			  inline: "yum install --nogpgcheck --assumeyes ansible"
-	# config.vm.provision :shell, inline: $install_terraform
+	config.vm.provision "shell", 	name: "enable epel", 							inline: "yum install -y epel-release"
+	config.vm.provision "shell", 	name: "additional tools", 				inline: "yum install -y jq net-tools"
+	config.vm.provision :shell, 	name: "Install python and pip", 	inline: $install_python_and_pip
+	config.vm.provision :shell, 	name: "Install aws-profile", 			inline: "pip3.6 install aws-profile"
+	config.vm.provision :shell, 	name: "Install ruby",  						inline: $install_ruby
+	config.vm.provision "shell", 	name: "install ansible", 			  	inline: "yum install --nogpgcheck --assumeyes ansible"
+	# config.vm.provision :shell,		name: "install terraform", 				inline: $install_terraform
 
 	config.vm.define "work", primary: true do |work|
 		work.vm.hostname = 'work'
@@ -54,12 +54,14 @@ Vagrant.configure("2") do |config|
 			v.customize ["modifyvm", :id, "--natdnshostresolver1", "on"]
 			v.customize ["modifyvm", :id, "--memory", 8000]
 			v.customize ["modifyvm", :id, "--name", "work"]
+			v.customize ["guestproperty", "set", :id, "/VirtualBox/GuestAdd/VBoxService/--timesync-set-threshold", 10000]
 		end
-		work.vm.provision "file", source: "~/.ssh", destination: "$HOME/.ssh"
-    work.vm.provision "shell", inline: "chmod 600 /home/vagrant/.ssh/*"
-		work.vm.provision "file", source: "~/.aws", destination: "$HOME/.aws"
-    work.vm.provision "shell", inline: "chmod 600 /home/vagrant/.aws/*"
+		work.vm.provision "file", 	source: "~/.ssh", destination: "$HOME/.ssh"
+    work.vm.provision "shell", 	inline: "chmod 600 /home/vagrant/.ssh/*"
+		work.vm.provision "file", 	source: "~/.aws", destination: "$HOME/.aws"
+    work.vm.provision "shell", 	inline: "chmod 600 /home/vagrant/.aws/*"
 	end
-	# config.vm.provision "docker"
-	# config.vm.provision "shell", 	name: "Initialize swarm manager", 	inline: "docker swarm init --advertise-addr 192.168.99.201 --listen-addr 192.168.99.201:2377"
+	config.vm.provision "docker"
+	config.vm.provision "shell", 	name: "Initialize swarm manager",
+			inline: "docker swarm init --advertise-addr 192.168.99.201 --listen-addr 192.168.99.201:2377"
 end
